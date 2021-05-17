@@ -1,0 +1,6 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="train_model" type="CompoundRunConfigurationType">
+    <toRun name="run_utils" type="PythonConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>
