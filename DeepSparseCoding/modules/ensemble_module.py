@@ -23,6 +23,7 @@ class EnsembleModule(nn.Sequential):
 
     def forward(self, x):
         self.layer_list = [x]
+        print(self.layer_list)
         for module in self:
             self.layer_list.append(module.get_encodings(self.layer_list[-1]))  # latent encodings
         return self.layer_list[-1]

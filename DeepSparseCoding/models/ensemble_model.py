@@ -81,7 +81,7 @@ class NetTensorFlowWrapper(nn.Sequential):
         return self.main_module
 
     def forward(self, x):
-        x = torch.reshape(x, (100, 3072))
+        x = torch.reshape(x, (100, 784))
         output_tensor = self.main_module(x)
         output_tensor = torch.squeeze(output_tensor, 1)
         output_tensor = torch.squeeze(output_tensor, 1)

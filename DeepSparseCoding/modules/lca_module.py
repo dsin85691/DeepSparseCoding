@@ -18,9 +18,9 @@ class LcaModule(nn.Module):
 
     def preprocess_data(self, input_tensor):
         if input_tensor.shape[0] == 100:
-                input_tensor = torch.reshape(input_tensor, (100, 3072))
+                input_tensor = torch.reshape(input_tensor, (100, 784))
         else:
-                input_tensor = torch.reshape(input_tensor, (1, 3072))
+                input_tensor = torch.reshape(input_tensor, (1, 784))
         return input_tensor
 
     def compute_excitatory_current(self, input_tensor):

@@ -38,7 +38,9 @@ for key, value in data_stats.items():
 # Load model
 model = loaders.load_model(params.model_type, params)
 model.to(params.device)
+# This part of the code is necessary for converting from PyTorch to TensorFlow Lite
 transposed_model = NetTensorFlowWrapper(model)
+
 
 # rgb = torchvision.transforms.Grayscale(num_output_channels=3)
 # torch_tensor = torchvision.transforms.ToTensor()
@@ -193,8 +195,8 @@ transposed_model = NetTensorFlowWrapper(model)
 #                          pin_memory=False)
 
 # Train model
-for epoch in range(1, transposed_model.params.num_epochs + 1):
-    run_utils.train_epoch(epoch, transposed_model[0], train_loader)
+for epoch in range(1, transposed_model[0].params.num_epochs + 1):
+    run_utils.train_epoch(epoch, model, train_loader)
     if (transposed_model[0].params.model_type.lower() in ['mlp', 'ensemble']):
         run_utils.test_epoch(epoch, transposed_model[0], test_loader)
     transposed_model[0].log_info(f'Completed epoch {epoch}/{transposed_model[0].params.num_epochs}')
@@ -238,9 +240,9 @@ for epoch in range(1, transposed_model.params.num_epochs + 1):
 
 t1 = ti.time()
 tot_time = float(t1 - t0)
-tot_images = transposed_model[0].params.num_epochs * len(train_loader.dataset)
+tot_images = model.params.num_epochs * len(train_loader.dataset)
 out_str = f'Training on {tot_images} images is complete. Total time was {tot_time} seconds.\n'
-transposed_model[0].log_info(out_str)
+model.log_info(out_str)
 print('Training Complete\n')
 
 for epoch in range(1):
@@ -258,6 +260,8 @@ for epoch in range(1):
 # outputs = model(torch.from_numpy(np.array(np.reshape(next(iter(train_loader))[0], (100, 784)))))
 classes = ('0', '1', '2', '3', '4',
            '5', '6', '7', '8', '9')
+
+files = [open(str(i)+'.txt', 'w') for i in range(10)]
 
 # rgb = torchvision.transforms.Grayscale(num_output_channels=3)
 # torch_tensor = torchvision.transforms.ToTensor()
@@ -311,10 +315,14 @@ for i, data in enumerate(test_loader, 0):
 
     predicted = outputs.max(1, keepdim=True)[1]
     labels = torch.reshape(labels, (100,))
+    print("LABELS:", labels)
+    print("PREDICTED: ", predicted)
+    print(labels.size()[0])
+    for j in range(labels.size()[0]):
+        files[predicted[j]].write('./images/' + str(classes[labels[j]]) + '/'+ "   " + str(classes[labels[j]]) + '\n')
 
-
-    for i in range(len(labels)):
-        if predicted[i][0] == labels[i]:
+    for k in range(len(labels)):
+        if predicted[k][0] == labels[k]:
             correct += 1
         total += 1
     # for i in range(numpy_images.shape[0]):
@@ -379,7 +387,7 @@ with torch.no_grad():
         #         numpy_batch = np.append(numpy_batch, numpy_data, axis=0)
 
             # print(numpy_images.shape)
-        outputs = transposed_model(images)
+        outputs = transposed_model(torch.from_numpy(images))
 
         predicted = outputs.max(1, keepdim=True)[1]
         predicted = torch.squeeze(predicted, 1)
@@ -421,4 +429,6 @@ for i in range(10):
     print('Accuracy of %5s : %2d %%' % (
         classes[i], 100 * class_correct[i] / class_total[i]))
 
-transposed_model[0].write_checkpoint()
+
+
+model.write_checkpoint()
